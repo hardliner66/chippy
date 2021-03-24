@@ -1,0 +1,25 @@
+[package]
+name = "chippy"
+version = "0.1.0"
+authors = ["hardliner66 <hardliner66@gmail.com>"]
+edition = "2018"
+default-run = "chippy-gui"
+
+[[bin]]
+name = "chippy"
+path = "src/main.rs"
+
+[[bin]]
+name = "chippy-gui"
+path = "src/gui.rs"
+
+# [profile.dev]
+# opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[dependencies]
+byteorder = "1.4.3"
+eframe = "0.10.0"
+rand = "0.8.3"
