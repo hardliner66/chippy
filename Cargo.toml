@@ -10,8 +10,12 @@ name = "chippy"
 path = "src/main.rs"
 
 [[bin]]
-name = "chippy-gui"
+name = "chippy-debug-ui"
 path = "src/gui.rs"
+
+[[bin]]
+name = "chippy-gui"
+path = "src/emulator.rs"
 
 # [profile.dev]
 # opt-level = 1
@@ -22,4 +26,5 @@ opt-level = 2
 [dependencies]
 byteorder = "1.4.3"
 eframe = "0.10.0"
+macroquad = "0.2.9"
 rand = "0.8.3"

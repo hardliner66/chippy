@@ -12,7 +12,7 @@ impl Default for TemplateApp {
         let mut emu = Emulator::default();
         emu.load(include_bytes!("../roms/chip-8/TETRIS.bin"))
             .unwrap();
-        emu.pause();
+        // emu.pause();
         Self { emu }
     }
 }
@@ -94,8 +94,8 @@ impl epi::App for TemplateApp {
                     for i in (0..4096).step_by(16) {
                         for n in 0..16 {
                             let value = format!("{:#04X}", emu.read_memory(i + n));
-                            if ((i + n) == emu.instruction_pointer()) || 
-                               ((i + n - 1) == emu.instruction_pointer())
+                            if ((i + n) == emu.instruction_pointer())
+                                || ((i + n - 1) == emu.instruction_pointer())
                             {
                                 ui.colored_label(egui::Color32::RED, value);
                             } else {
@@ -106,7 +106,6 @@ impl epi::App for TemplateApp {
                     }
                 });
             });
-
         });
     }
 }

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut emu = chippy::Emulator::default();
+    let mut emu = chippy::Emulator::new(|| 0);
     emu.load(include_bytes!("../roms/chip-8/TETRIS.bin"))?;
 
     loop {

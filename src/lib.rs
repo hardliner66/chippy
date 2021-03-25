@@ -55,7 +55,6 @@ impl From<u16> for Register {
     }
 }
 
-#[derive(Debug)]
 pub struct Emulator {
     memory: [u8; 4096],
     registers: [u8; 16],
@@ -63,6 +62,7 @@ pub struct Emulator {
     stack: Vec<u16>,
     instruction_pointer: u16,
     paused: bool,
+    get_key_callback: Box<dyn Fn() -> u8>,
 }
 
 impl Emulator {
@@ -105,7 +105,7 @@ impl Emulator {
             return Ok(());
         }
         let instruction = self.read_instruction()?;
-        self.instruction_pointer += INSTRUCTION_SIZE;
+        self.skip_instruction();
 
         self.execute(instruction)?;
 
@@ -132,7 +132,15 @@ impl Emulator {
                 let register = whatever >> 8;
                 let nn = (whatever ^ (register << 8)) as u8;
                 if nn == self.read_register(register.into()) {
-                    self.instruction_pointer += INSTRUCTION_SIZE;
+                    self.skip_instruction();
+                }
+            }
+            0x4000..=0x4FFF => {
+                let whatever = instruction & 0x0FFF;
+                let register = whatever >> 8;
+                let nn = (whatever ^ (register << 8)) as u8;
+                if nn != self.read_register(register.into()) {
+                    self.skip_instruction();
                 }
             }
             0x6000..=0x6FFF => {
@@ -162,6 +170,22 @@ impl Emulator {
                 self.write_register(register.into(), nn & r);
             }
             0xD000..=0xDFFF => {
+                // TODO: implement drawing
+            }
+            0xE0A1..=0xEFA1 => {
+                let whatever = instruction & 0x0FFF;
+                let register = whatever >> 8;
+                if self.read_register(register.into()) != self.get_key().into() {
+                    self.skip_instruction();
+                }
+            }
+            0xF01E..=0xFF1E => {
+                let whatever = instruction & 0x0FFF;
+                let register = whatever >> 8;
+                let address_register = self.read_address_register();
+                self.write_address_register(
+                    address_register + self.read_register(register.into()) as u16,
+                )
             }
             _ => {
                 println!("{:#06X}", instruction);
@@ -205,17 +229,24 @@ impl Emulator {
     pub fn write_register(&mut self, register: Register, value: u8) {
         self.registers[register as usize] = value;
     }
-}
 
-impl Default for Emulator {
-    fn default() -> Self {
-        Emulator {
+    pub fn skip_instruction(&mut self) {
+        self.instruction_pointer += INSTRUCTION_SIZE;
+    }
+
+    pub fn get_key(&mut self) -> u8 {
+        (self.get_key_callback)()
+    }
+
+    pub fn new<F: 'static + Fn() -> u8>(get_key: F) -> Self {
+        Self {
             memory: [0; 4096],
             registers: [0; 16],
             address_register: 0,
             stack: Vec::with_capacity(DEFAULT_STACK_CAPACITY),
             instruction_pointer: 0x200,
             paused: false,
+            get_key_callback: Box::new(get_key),
         }
     }
 }
